@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import sqlite3
 from pathlib import Path
 from typing import Optional
@@ -194,5 +195,35 @@ def prehled_mereni_sablona(request: Request):
         {
             "request": request,
             "rows": rows,
+        },
+    )
+
+
+@app.get("/mereni_doma_graf", response_class=HTMLResponse)
+def graf_mereni_doma(request: Request, druh_mereni: str):
+    """Vrati jednoduchy graf hodnot v case podle druhu mereni."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT tcas, hodnota
+            FROM mereni_doma
+            WHERE druh_mereni = ?
+            ORDER BY tcas ASC, id ASC
+            """,
+            (druh_mereni,),
+        ).fetchall()
+
+    labels = [str(row["tcas"]) for row in rows]
+    values = [float(row["hodnota"]) for row in rows]
+
+    return templates.TemplateResponse(
+        "mereni_doma_graf.html",
+        {
+            "request": request,
+            "druh_mereni": druh_mereni,
+            # Predame data uz jako JSON stringy, aby je slo snadno nacist v JavaScriptu.
+            "labels_json": json.dumps(labels, ensure_ascii=False),
+            "values_json": json.dumps(values),
+            "count": len(rows),
         },
     )

@@ -54,13 +54,21 @@ curl -X POST "http://127.0.0.1:8000/mereni_doma" ^
   -d "{\"druh_mereni\":\"teplota\",\"hodnota\":23.7}"
 ```
 
-## 4) Zobrazeni dat (GET /prehled)
+## 4) Endpointy se sablonami (HTML)
 
 Otevri v prohlizeci:
 
-`http://127.0.0.1:8000/prehled`
+- `http://127.0.0.1:8000/mereni_doma_prehled`
+- `http://127.0.0.1:8000/mereni_doma_prehled2`
 
-Uvidis HTML tabulku s daty z SQLite.
+Uvidis HTML tabulky s daty z SQLite.
+
+Graf v case (parametrem je druh mereni):
+
+- `http://127.0.0.1:8000/mereni_doma_graf?druh_mereni=teplota`
+- `http://127.0.0.1:8000/mereni_doma_graf?druh_mereni=teplota%20podlaha`
+
+Poznamka: mezera v URL se zapisuje jako `%20`.
 
 ## 5) JSON API (GET /mereni_doma)
 

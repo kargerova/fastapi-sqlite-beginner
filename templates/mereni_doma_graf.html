@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Graf mereni doma</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 980px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            padding: 1rem;
+            background: #fff;
+        }
+        .help {
+            color: #57606a;
+        }
+        .chart-wrap {
+            position: relative;
+            height: 420px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Graf mereni doma</h1>
+    <p><strong>druh_mereni:</strong> <code>{{ druh_mereni }}</code></p>
+    <p class="help">Endpoint: <code>GET /mereni_doma_graf?druh_mereni=teplota</code></p>
+
+    <div class="card">
+        {% if count == 0 %}
+            <p>Pro tento druh mereni zatim nejsou data.</p>
+        {% else %}
+            <p>Pocet bodu: <strong>{{ count }}</strong></p>
+            <div class="chart-wrap">
+                <canvas id="graf"></canvas>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if count > 0 %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = {{ labels_json | safe }};
+        const values = {{ values_json | safe }};
+
+        const ctx = document.getElementById("graf");
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Hodnota",
+                        data: values,
+                        borderColor: "#0969da",
+                        backgroundColor: "rgba(9, 105, 218, 0.15)",
+                        fill: true,
+                        tension: 0.2,
+                        pointRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: "Cas" }
+                    },
+                    y: {
+                        title: { display: true, text: "Hodnota" }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
