@@ -4,6 +4,7 @@ Tento mini-projekt ukazuje uplny zaklad:
 - `POST /mereni` ulozi data do SQLite tabulky
 - `GET /prehled` zobrazi HTML tabulku s ulozenymi daty
 - `GET /api/mereni` vrati stejna data jako JSON
+- `GET /docs` zobrazi automaticky generovanou API dokumentaci
 
 Cil je ukázat:
 - jak FastAPI prijima JSON data,
@@ -27,6 +28,10 @@ uvicorn app:app --reload
 ```
 
 Aplikace pobezi na `http://127.0.0.1:8000`.
+
+FastAPI automaticky poskytuje interaktivni dokumentaci na:
+
+`http://127.0.0.1:8000/docs`
 
 ## 3) Vlozeni dat (POST /mereni)
 
@@ -83,3 +88,7 @@ Interni sloupec `id` je primarni klic pro snadne razeni a identifikaci zaznamu.
 - pridej filtr podle typu mereni,
 - pridej validaci povoleneho rozsahu `hodnota`,
 - pridej endpoint pro mazani dat.
+
+## 8) Uzitecne odkazy
+
+- Oficialni dokumentace FastAPI: https://fastapi.tiangolo.com/
