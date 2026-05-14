@@ -5,14 +5,16 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 # Cesta k SQLite databazi v koreni projektu.
 DB_PATH = Path("data.db")
 
 app = FastAPI(title="Jednoducha FastAPI + SQLite aplikace")
+templates = Jinja2Templates(directory="templates")
 
 
 class MereniVstup(BaseModel):
@@ -35,11 +37,23 @@ def get_connection() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    """Vytvori tabulku a pripadne provede jednoduchou migraci nazvu sloupce."""
+    """Vytvori tabulku/tabulky."""
     with get_connection() as conn:
         conn.execute(
             """
-            CREATE TABLE IF NOT EXISTS mereni (
+            CREATE TABLE IF NOT EXISTS mereni_doma (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tcas TEXT DEFAULT (datetime('now', 'localtime')),
+                druh_mereni TEXT NOT NULL,
+                hodnota REAL NOT NULL
+            )
+            """
+        )
+
+        # Pro ukazku mame i druhou tabulku, ale zatim ji nepouzivame.
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS mereni_zahrada (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tcas TEXT DEFAULT (datetime('now', 'localtime')),
                 druh_mereni TEXT NOT NULL,
@@ -55,19 +69,19 @@ def init_db() -> None:
 init_db()
 
 
-@app.post("/mereni")
+@app.post("/mereni_doma")
 def uloz_mereni(vstup: MereniVstup) -> dict:
-    """Prijme JSON data a ulozi je do tabulky `mereni`."""
+    """Prijme JSON data a ulozi je do tabulky `mereni_doma`."""
     with get_connection() as conn:
         if vstup.tcas is None:
             # Pokud cas neprisel, nechame databazi doplnit default hodnotu.
             cursor = conn.execute(
-                'INSERT INTO mereni (druh_mereni, hodnota) VALUES (?, ?)',
+                'INSERT INTO mereni_doma (druh_mereni, hodnota) VALUES (?, ?)',
                 (vstup.druh_mereni, vstup.hodnota),
             )
         else:
             cursor = conn.execute(
-                'INSERT INTO mereni (tcas, druh_mereni, hodnota) VALUES (?, ?, ?)',
+                'INSERT INTO mereni_doma (tcas, druh_mereni, hodnota) VALUES (?, ?, ?)',
                 (vstup.tcas, vstup.druh_mereni, vstup.hodnota),
             )
 
@@ -84,9 +98,9 @@ def uloz_mereni(vstup: MereniVstup) -> dict:
     }
 
 
-@app.get("/api/mereni")
+@app.get("/mereni_doma")
 def api_mereni(druh_mereni: Optional[str] = None) -> list[dict]:
-    """Vrati data z tabulky `mereni` jako JSON.
+    """Vrati data z tabulky `mereni_doma` jako JSON.
 
     Pokud je zadany query parametr `druh_mereni`, vrati pouze odpovidajici zaznamy.
     """
@@ -95,7 +109,7 @@ def api_mereni(druh_mereni: Optional[str] = None) -> list[dict]:
             rows = conn.execute(
                 """
                 SELECT id, tcas, druh_mereni, hodnota
-                FROM mereni
+                FROM mereni_doma
                 WHERE druh_mereni = ?
                 ORDER BY id DESC
                 """,
@@ -103,7 +117,7 @@ def api_mereni(druh_mereni: Optional[str] = None) -> list[dict]:
             ).fetchall()
         else:
             rows = conn.execute(
-                "SELECT id, tcas, druh_mereni, hodnota FROM mereni ORDER BY id DESC"
+                "SELECT id, tcas, druh_mereni, hodnota FROM mereni_doma ORDER BY id DESC"
             ).fetchall()
 
     return [
@@ -117,12 +131,12 @@ def api_mereni(druh_mereni: Optional[str] = None) -> list[dict]:
     ]
 
 
-@app.get("/prehled", response_class=HTMLResponse)
+@app.get("/mereni_doma_prehled", response_class=HTMLResponse)
 def prehled_mereni() -> str:
-    """Vrati jednoduchou HTML stranku s obsahem tabulky `mereni`."""
+    """Vrati jednoduchou HTML stranku s obsahem tabulky `mereni_doma`."""
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT id, tcas, druh_mereni, hodnota FROM mereni ORDER BY id DESC"
+            "SELECT id, tcas, druh_mereni, hodnota FROM mereni_doma ORDER BY id DESC"
         ).fetchall()
 
     # Jednoducha HTML sablona vytvorena jako string, aby byl priklad co nejprehlednejsi.
@@ -143,8 +157,8 @@ def prehled_mereni() -> str:
         "</head>",
         "<body>",
         "  <h1>Prehled mereni</h1>",
-        "  <p>Endpoint pro vlozeni dat: <code>POST /mereni</code></p>",
-        "  <p>JSON API: <code>GET /api/mereni</code></p>",
+        "  <p>Endpoint pro vlozeni dat: <code>POST /mereni_doma</code></p>",
+        "  <p>JSON API: <code>GET /mereni_doma</code></p>",
         "  <table>",
         "    <thead><tr><th>ID</th><th>tcas</th><th>druh_mereni</th><th>hodnota</th></tr></thead>",
         "    <tbody>",
@@ -165,3 +179,20 @@ def prehled_mereni() -> str:
 
     lines.extend(["    </tbody>", "  </table>", "</body>", "</html>"])
     return "\n".join(lines)
+
+
+@app.get("/mereni_doma_prehled2", response_class=HTMLResponse)
+def prehled_mereni_sablona(request: Request):
+    """Vrati HTML stranku renderovanou ze sablony."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT id, tcas, druh_mereni, hodnota FROM mereni_doma ORDER BY id DESC"
+        ).fetchall()
+
+    return templates.TemplateResponse(
+        "mereni_doma_prehled2.html",
+        {
+            "request": request,
+            "rows": rows,
+        },
+    )

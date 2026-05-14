@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prehled mereni - sablona</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #d0d7de;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        th {
+            background: #f6f8fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Prehled mereni - sablona</h1>
+    <p>Endpoint pro vlozeni dat: <code>POST /mereni_doma</code></p>
+    <p>JSON API: <code>GET /mereni_doma</code></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>tcas</th>
+                <th>druh_mereni</th>
+                <th>hodnota</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.tcas }}</td>
+                <td>{{ row.druh_mereni }}</td>
+                <td>{{ row.hodnota }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4"><em>Zatim bez dat.</em></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

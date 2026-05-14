@@ -1,9 +1,9 @@
 # FastAPI + SQLite (zakladni vyukovy priklad)
 
 Tento mini-projekt ukazuje uplny zaklad:
-- `POST /mereni` ulozi data do SQLite tabulky
-- `GET /prehled` zobrazi HTML tabulku s ulozenymi daty
-- `GET /api/mereni` vrati stejna data jako JSON
+- `POST /mereni_doma` ulozi data do SQLite tabulky
+- `GET /mereni_doma_prehled` zobrazi HTML tabulku s ulozenymi daty
+- `GET /mereni_doma` vrati stejna data jako JSON
 - `GET /docs` zobrazi automaticky generovanou API dokumentaci
 
 Cil je ukázat:
@@ -33,7 +33,7 @@ FastAPI automaticky poskytuje interaktivni dokumentaci na:
 
 `http://127.0.0.1:8000/docs`
 
-## 3) Vlozeni dat (POST /mereni)
+## 3) Vlozeni dat (POST /mereni_doma)
 
 Priklad JSONu:
 
@@ -49,7 +49,7 @@ Pole `tcas` je nepovinne. Kdyz ho neposles, ulozi se automaticky aktualni cas z 
 Priklad s `curl`:
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/mereni" ^
+curl -X POST "http://127.0.0.1:8000/mereni_doma" ^
   -H "Content-Type: application/json" ^
   -d "{\"druh_mereni\":\"teplota\",\"hodnota\":23.7}"
 ```
@@ -62,21 +62,21 @@ Otevri v prohlizeci:
 
 Uvidis HTML tabulku s daty z SQLite.
 
-## 5) JSON API (GET /api/mereni)
+## 5) JSON API (GET /mereni_doma)
 
 Otevri v prohlizeci nebo v API klientovi:
 
-`http://127.0.0.1:8000/api/mereni`
+`http://127.0.0.1:8000/mereni_doma`
 
 Dostanes JSON pole zaznamu z tabulky.
 
 Jednoduchy filtr podle typu mereni:
 
-`http://127.0.0.1:8000/api/mereni?druh_mereni=teplota`
+`http://127.0.0.1:8000/mereni_doma?druh_mereni=teplota`
 
 ## 6) Struktura tabulky
 
-Tabulka `mereni` ma sloupce:
+Tabulka `mereni_doma` ma sloupce:
 - `tcas` (TEXT, defaultne se doplni automaticky)
 - `druh_mereni` (TEXT)
 - `hodnota` (REAL)
